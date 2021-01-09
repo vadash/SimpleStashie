@@ -46,7 +46,7 @@ namespace SimpleStashie
         {
             for (var i = 0; i < Settings.AmountOfRetries.Value; i++)
             {
-                var stashTask = Task.Run(StashItems);
+                var stashTask = Task.Run(() => StashItems());
                 stashTask.Wait();
                 Thread.Sleep(Settings.WaitTimeInMs - 10 + Random.Next(0, 20));
             }
