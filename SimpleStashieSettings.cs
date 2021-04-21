@@ -13,10 +13,7 @@ namespace SimpleStashie
         public HotkeyNode StashItKey { get; set; } = new HotkeyNode(Keys.F2);
 
         [Menu("Time between Clicks in Milliseconds")]
-        public RangeNode<int> WaitTimeInMs { get; set; } = new RangeNode<int>(75, 40, 200);
-
-        [Menu("Amount of Retries")]
-        public RangeNode<int> AmountOfRetries { get; set; } = new RangeNode<int>(3, 1, 5);
+        public RangeNode<int> ExtraDelayInMs { get; set; } = new RangeNode<int>(40, 10, 100);
 
         [Menu("Inventory cells which should NOT be dumped to Stash")]
         public int[,] IgnoredCells { get; set; } =

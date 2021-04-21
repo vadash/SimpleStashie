@@ -1,21 +1,16 @@
 ﻿using ExileCore;
+using ExileCore.Shared;
 using ExileCore.Shared.Enums;
 using ImGuiNET;
 using SharpDX;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
+using System.Collections;
 using System.Windows.Forms;
 
 namespace SimpleStashie
 {
     public class SimpleStashie : BaseSettingsPlugin<SimpleStashieSettings>
     {
-        private Stopwatch Timer { get; } = new Stopwatch();
         private Random Random { get; } = new Random();
         private Vector2 ClickWindowOffset => GameController.Window.GetWindowRectangle().TopLeft;
 
@@ -24,42 +19,40 @@ namespace SimpleStashie
 
         public override bool Initialise()
         {
-            Timer.Start();
             Input.RegisterKey(Keys.LControlKey);
             return true;
         }
 
-        public override Job Tick()
+        public override void Render()
         {
-            if (!Input.GetKeyState(Settings.StashItKey.Value)) return null;
-            if (!GameController.Window.IsForeground()) return null;
-            if (!GameController.Game.IngameState.IngameUi.InventoryPanel.IsVisible) return null;
-            if (!GameController.Game.IngameState.IngameUi.StashElement.IsVisibleLocal) return null;
-            if (IsRunning) return null;
-
+            if (!IsRunConditionMet()) return;
             IsRunning = true;
 
-            return new Job("SimpleStashie", StashItemsWithRetries);
+            var coroutineWorker = new Coroutine(StashItems(), this, "SimpleStashie.StashItems");
+            Core.ParallelRunner.Run(coroutineWorker);
         }
 
-        public void StashItemsWithRetries()
+        private bool IsRunConditionMet()
         {
-            for (var i = 0; i < Settings.AmountOfRetries.Value; i++)
-            {
-                var stashTask = Task.Run(() => StashItems());
-                stashTask.Wait();
-                Thread.Sleep(Settings.WaitTimeInMs - 10 + Random.Next(0, 20));
-            }
-            IsRunning = false;
+            if (IsRunning) return false;
+            if (!Input.GetKeyState(Settings.StashItKey.Value)) return false;
+            if (!GameController.Window.IsForeground()) return false;
+            if (!GameController.Game.IngameState.IngameUi.InventoryPanel.IsVisible) return false;
+
+            if (GameController.Game.IngameState.IngameUi.StashElement.IsVisibleLocal) return true;
+            if (GameController.Game.IngameState.IngameUi.SellWindow.IsVisibleLocal) return true;
+            if (GameController.Game.IngameState.IngameUi.TradeWindow.IsVisibleLocal) return true;
+
+            return false;
         }
 
-        private void StashItems()
+        private IEnumerator StashItems()
         {
             var items = GameController.Game.IngameState.IngameUi.InventoryPanel[InventoryIndex.PlayerInventory]?.VisibleInventoryItems;
             if (items == null)
             {
-                DebugWindow.LogError("Items in inventory is null.");
-                return;
+                DebugWindow.LogError("SimpleStashie -> Items in inventory is null.");
+                yield break;
             }
 
             try
@@ -73,22 +66,19 @@ namespace SimpleStashie
                         + new Vector2(Random.Next(0, 5), Random.Next(0, 5));
 
                     Input.SetCursorPos(centerOfItem);
-
+                    yield return new WaitTime(3);
                     Input.Click(MouseButtons.Left);
-                    Thread.Sleep(15);
+                    yield return new WaitTime(3);
                     Input.Click(MouseButtons.Left);
 
-                    Thread.Sleep(
-                        Settings.WaitTimeInMs 
-                        - 15 // Sleep between clicks
-                        - 10 
-                        + Random.Next(0, 20)
-                        );
+                    var waitTime = Math.Max(3, Settings.ExtraDelayInMs - 6 - 8 + Random.Next(0, 16));
+                    yield return new WaitTime(waitTime);
                 }
             }
             finally
             {
                 Input.KeyUp(Keys.LControlKey);
+                IsRunning = false;
             }
         }
 
