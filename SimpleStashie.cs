@@ -5,6 +5,7 @@ using ImGuiNET;
 using SharpDX;
 using System;
 using System.Collections;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace SimpleStashie
@@ -23,14 +24,11 @@ namespace SimpleStashie
             return true;
         }
 
-        public override void Render()
+        public override Job Tick()
         {
-            if (!IsRunConditionMet()) return;
-            IsRunning = true;
-
-            var coroutineWorker = new Coroutine(StashItems(), this, "SimpleStashie.StashItems");
-            Core.ParallelRunner.Run(coroutineWorker);
+            return new Job("SimpleStashie", StashItems, 5000);
         }
+
 
         private bool IsRunConditionMet()
         {
@@ -46,13 +44,17 @@ namespace SimpleStashie
             return false;
         }
 
-        private IEnumerator StashItems()
+        private void StashItems()
         {
+            if (!IsRunConditionMet()) return;
+            IsRunning = true;
+
             var items = GameController.Game.IngameState.IngameUi.InventoryPanel[InventoryIndex.PlayerInventory]?.VisibleInventoryItems;
             if (items == null)
             {
+                IsRunning = false;
                 DebugWindow.LogError("SimpleStashie -> Items in inventory is null.");
-                yield break;
+                return;
             }
 
             try
@@ -66,13 +68,13 @@ namespace SimpleStashie
                         + new Vector2(Random.Next(0, 5), Random.Next(0, 5));
 
                     Input.SetCursorPos(centerOfItem);
-                    yield return new WaitTime(3);
+                    Thread.Sleep(8);
                     Input.Click(MouseButtons.Left);
-                    yield return new WaitTime(3);
+                    Thread.Sleep(8);
                     Input.Click(MouseButtons.Left);
 
-                    var waitTime = Math.Max(3, Settings.ExtraDelayInMs - 6 - 8 + Random.Next(0, 16));
-                    yield return new WaitTime(waitTime);
+                    var waitTime = Math.Max(32, Settings.ExtraDelayInMs- 8 + Random.Next(0, 16));
+                    Thread.Sleep(waitTime);
                 }
             }
             finally
