@@ -57,6 +57,13 @@ namespace SimpleStashie
 
             try
             {
+                for (int i = 0; i < 10; i++)
+                {
+                    Input.KeyDown(Keys.Left);
+                    yield return new WaitTime(100);
+                }
+                Input.KeyUp(Keys.Left);
+                
                 Input.KeyDown(Keys.LControlKey);
                 foreach (var item in items)
                 {
