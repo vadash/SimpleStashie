@@ -41,6 +41,7 @@ namespace SimpleStashie
         private IEnumerator StashItems()
         {
             var items = GameController.Game.IngameState.IngameUi.InventoryPanel[InventoryIndex.PlayerInventory]?.VisibleInventoryItems;
+            DebugWindow.LogDebug($"Found {items} items in inventory");
             if (items == null)
             {
                 DebugWindow.LogError("SimpleStashie -> Items in inventory is null.");
@@ -60,9 +61,8 @@ namespace SimpleStashie
                 foreach (var item in items)
                 {
                     if (SlotIsIgnored(item.InventPosX, item.InventPosY)) continue;
-                    var centerOfItem = item.GetClientRect().Center
-                        + ClickWindowOffset
-                        + new Vector2(Random.Next(0, 5), Random.Next(0, 5));
+                    var centerOfItem = item.GetClientRectCache.Center
+                                       + new Vector2(Random.Next(0, 5), Random.Next(0, 5));
 
                     Input.SetCursorPos(centerOfItem);
                     yield return new WaitTime(3);
