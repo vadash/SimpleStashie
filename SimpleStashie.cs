@@ -35,15 +35,7 @@ namespace SimpleStashie
         private bool IsRunConditionMet()
         {
             if (IsRunning) return false;
-            if (!Input.GetKeyState(Settings.StashItKey.Value)) return false;
-            if (!GameController.Window.IsForeground()) return false;
-            if (!GameController.Game.IngameState.IngameUi.InventoryPanel.IsVisible) return false;
-
-            if (GameController.Game.IngameState.IngameUi.StashElement.IsVisibleLocal) return true;
-            if (GameController.Game.IngameState.IngameUi.SellWindow.IsVisibleLocal) return true;
-            if (GameController.Game.IngameState.IngameUi.TradeWindow.IsVisibleLocal) return true;
-
-            return false;
+            return Input.GetKeyState(Settings.StashItKey.Value);
         }
 
         private IEnumerator StashItems()
