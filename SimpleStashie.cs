@@ -14,9 +14,6 @@ namespace SimpleStashie
         private Random Random { get; } = new Random();
         private Vector2 ClickWindowOffset => GameController.Window.GetWindowRectangle().TopLeft;
 
-        private static bool IsRunning { get; set; } = false;
-
-
         public override bool Initialise()
         {
             Input.RegisterKey(Keys.LControlKey);
@@ -25,17 +22,11 @@ namespace SimpleStashie
 
         public override void Render()
         {
-            if (!IsRunConditionMet()) return;
-            IsRunning = true;
-
-            var coroutineWorker = new Coroutine(StashItems(), this, "SimpleStashie.StashItems");
-            Core.ParallelRunner.Run(coroutineWorker);
-        }
-
-        private bool IsRunConditionMet()
-        {
-            if (IsRunning) return false;
-            return Input.GetKeyState(Settings.StashItKey.Value);
+            if (Input.GetKeyState(Settings.StashItKey.Value))
+            {
+                if (Core.ParallelRunner.FindByName("SimpleStashie.StashItems") != null) return;
+                Core.ParallelRunner.Run(new Coroutine(StashItems(), this, "SimpleStashie.StashItems"));
+            }
         }
 
         private IEnumerator StashItems()
@@ -45,7 +36,6 @@ namespace SimpleStashie
             if (items == null)
             {
                 DebugWindow.LogError("SimpleStashie -> Items in inventory is null.");
-                IsRunning = false;
                 yield break;
             }
             try
@@ -77,7 +67,6 @@ namespace SimpleStashie
             finally
             {
                 Input.KeyUp(Keys.LControlKey);
-                IsRunning = false;
             }
         }
 
