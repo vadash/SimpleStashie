@@ -45,9 +45,9 @@ namespace SimpleStashie
             if (items == null)
             {
                 DebugWindow.LogError("SimpleStashie -> Items in inventory is null.");
+                IsRunning = false;
                 yield break;
             }
-
             try
             {
                 for (int i = 0; i < 10; i++)
