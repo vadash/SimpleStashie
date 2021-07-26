@@ -43,7 +43,7 @@ namespace SimpleStashie
                 for (int i = 0; i < 10; i++)
                 {
                     Input.KeyDown(Keys.Left);
-                    yield return new WaitTime(100);
+                    yield return new WaitTime(50);
                 }
                 Input.KeyUp(Keys.Left);
                 
